@@ -1,0 +1,41 @@
+name: Build & Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: github-cicd-461810
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Configure Docker to use Artifact Registry
+        run: |
+          gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+      - name: Build Docker image
+        run: |
+          docker build -t asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest .
+
+      - name: Push Docker image to Artifact Registry
+        run: |
+          docker push asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy nodejs-github-action-cloud-run \
+            --image asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest \
+            --region asia-southeast1 \
+            --platform managed \
+            --allow-unauthenticated \
+            --quiet
