@@ -1,0 +1,13 @@
+services:
+  api:
+    build: .
+    container_name: nodejs-github-action-cloud-run-api
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+    restart: always
+
+networks:
+  default:
+    name: nodejs-github-action-cloud-run-network
