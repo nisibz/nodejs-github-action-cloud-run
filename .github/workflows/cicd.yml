@@ -5,6 +5,16 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
+env:
+  TAG_NAME: ${{github.ref_name}}
+  REGION: "asia-southeast1"
+  REPOSITORY: "nodejs-github-action-cloud-run"
+  IMAGE_NAME: "nodejs-github-action-cloud-run"
+  PROJECT_ID: "github-cicd-461810"
+  SERVICE_NAME: "nodejs-github-action-cloud-run"
+  DOCKERFILE_NAME: "Dockerfile.prod"
+  IMAGE_URI: $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:$TAG_NAME
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -21,28 +31,25 @@ jobs:
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: github-cicd-461810
+          project_id: ${{env.PROJECT_ID}}
           version: "latest"
 
       - name: Configure Docker to use Artifact Registry
         run: |
-          gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+          gcloud auth configure-docker ${{env.REGION}}-docker.pkg.dev
       - name: Build Docker image
         run: |
-          TAG_NAME=${GITHUB_REF##*/}
-          docker build -t asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:$TAG_NAME -f Dockerfile.prod .
+          docker build -t ${{env.IMAGE_URI}} -f ${{env.DOCKERFILE_NAME}} .
 
       - name: Push Docker image to Artifact Registry
         run: |
-          TAG_NAME=${GITHUB_REF##*/}
-          docker push asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:$TAG_NAME
+          docker push ${{env.IMAGE_URI}}
 
       - name: Deploy to Cloud Run
         run: |
-          TAG_NAME=${GITHUB_REF##*/}
-          gcloud run deploy nodejs-github-action-cloud-run \
-            --image asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:$TAG_NAME \
-            --region asia-southeast1 \
+          gcloud run deploy ${{env.SERVICE_NAME}} \
+            --image ${{env.IMAGE_URI}} \
+            --region ${{env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
             --quiet
