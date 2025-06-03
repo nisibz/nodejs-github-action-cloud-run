@@ -35,7 +35,7 @@ jobs:
           gcloud auth configure-docker asia-southeast1-docker.pkg.dev
       - name: Build Docker image
         run: |
-          docker build -t asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest .
+          docker build -t asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest -f Dockerfile.prod .
 
       - name: Push Docker image to Artifact Registry
         run: |
