@@ -20,6 +20,12 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
+      - name: Check gcloud auth list
+        run: gcloud auth list
+
+      - name: Check Docker credential helpers
+        run: cat ~/.docker/config.json
+
       - name: Configure Docker to use Artifact Registry
         run: |
           gcloud auth configure-docker asia-southeast1-docker.pkg.dev
