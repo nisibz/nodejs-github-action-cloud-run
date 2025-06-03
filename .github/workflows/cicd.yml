@@ -2,8 +2,8 @@ name: Build & Deploy to Cloud Run
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   build-deploy:
@@ -24,27 +24,24 @@ jobs:
           project_id: github-cicd-461810
           version: "latest"
 
-      - name: Check gcloud auth list
-        run: gcloud auth list
-
-      - name: Check Docker credential helpers
-        run: cat ~/.docker/config.json
-
       - name: Configure Docker to use Artifact Registry
         run: |
           gcloud auth configure-docker asia-southeast1-docker.pkg.dev
       - name: Build Docker image
         run: |
-          docker build -t asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest -f Dockerfile.prod .
+          TAG_NAME=${GITHUB_REF##*/}
+          docker build -t asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:$TAG_NAME -f Dockerfile.prod .
 
       - name: Push Docker image to Artifact Registry
         run: |
-          docker push asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest
+          TAG_NAME=${GITHUB_REF##*/}
+          docker push asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:$TAG_NAME
 
       - name: Deploy to Cloud Run
         run: |
+          TAG_NAME=${GITHUB_REF##*/}
           gcloud run deploy nodejs-github-action-cloud-run \
-            --image asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:latest \
+            --image asia-southeast1-docker.pkg.dev/github-cicd-461810/nodejs-github-action-cloud-run/nodejs-github-action-cloud-run:$TAG_NAME \
             --region asia-southeast1 \
             --platform managed \
             --allow-unauthenticated \
