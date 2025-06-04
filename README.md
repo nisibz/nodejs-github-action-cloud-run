@@ -19,7 +19,7 @@ TypeScript-based Node.js application with Docker and Google Cloud Run CI/CD pipe
 ## Quick Start
 
 ```bash
-git clone https://github.com/your-repo.git
+git clone https://github.com/nisibz/nodejs-github-action-cloud-run.git
 cd nodejs-github-action-cloud-run
 npm install
 cp .env.example .env
